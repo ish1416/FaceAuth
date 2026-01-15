@@ -1,60 +1,62 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { colors } from '../theme/colors';
+import { spacing } from '../theme/spacing';
+import PrimaryButton from '../components/PrimaryButton';
 
 export default function LandingScreen() {
   const navigation = useNavigation();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>FaceAuth</Text>
-        <Text style={styles.subtitle}>Secure Face Authentication</Text>
-        <TouchableOpacity 
-          style={styles.button} 
-          onPress={() => navigation.navigate('Enroll' as never)}
-        >
-          <Text style={styles.buttonText}>Get Started</Text>
-        </TouchableOpacity>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>FaceAuth</Text>
+          <Text style={styles.subtitle}>Secure Face Authentication</Text>
+        </View>
+        
+        <View style={styles.buttonContainer}>
+          <PrimaryButton 
+            title="Get Started" 
+            onPress={() => navigation.navigate('Enroll' as never)}
+          />
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
+    backgroundColor: colors.background,
   },
   content: {
+    flex: 1,
+    paddingHorizontal: spacing.xl,
+    justifyContent: 'space-between',
+  },
+  titleContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#1A1A1A',
-    marginBottom: 16,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 18,
-    color: '#6B7280',
-    marginBottom: 48,
+    color: colors.textSecondary,
     textAlign: 'center',
+    fontWeight: '400',
   },
-  button: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
-    minWidth: 200,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
+  buttonContainer: {
+    paddingBottom: spacing.xl,
+    alignItems: 'center',
   },
 });
