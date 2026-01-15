@@ -1,6 +1,6 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { CameraView as ExpoCameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { CameraView as ExpoCameraView, useCameraPermissions } from 'expo-camera';
 import GlassCard from './GlassCard';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
@@ -58,7 +58,7 @@ const CameraView = forwardRef<CameraViewRef, CameraViewProps>((props, ref) => {
         <ExpoCameraView
           ref={setCameraRef}
           style={styles.camera}
-          facing={CameraType.front}
+          facing="front"
         />
       </View>
     </GlassCard>
