@@ -1,13 +1,33 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withTiming, 
+  withSpring 
+} from 'react-native-reanimated';
 
 export default function LandingScreen() {
   const navigation = useNavigation();
+  const opacity = useSharedValue(0);
+  const scale = useSharedValue(0.8);
+
+  useEffect(() => {
+    opacity.value = withTiming(1, { duration: 800 });
+    scale.value = withSpring(1, { damping: 15 });
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+      transform: [{ scale: scale.value }],
+    };
+  });
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <Animated.View style={[styles.content, animatedStyle]}>
         <Text style={styles.title}>FaceAuth</Text>
         <Text style={styles.subtitle}>Secure Face Authentication</Text>
         <TouchableOpacity 
@@ -16,7 +36,7 @@ export default function LandingScreen() {
         >
           <Text style={styles.buttonText}>Get Started</Text>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
     </View>
   );
 }
