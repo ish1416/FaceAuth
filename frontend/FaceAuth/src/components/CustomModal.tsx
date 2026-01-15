@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 import { typography } from '../theme/typography';
@@ -28,6 +29,54 @@ export default function CustomModal({
   primaryButton,
   secondaryButton,
 }: CustomModalProps) {
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const iconScaleAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Haptics.notificationAsync(
+        type === 'success' 
+          ? Haptics.NotificationFeedbackType.Success
+          : Haptics.NotificationFeedbackType.Error
+      );
+      
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        // Icon bounce animation after modal appears
+        Animated.sequence([
+          Animated.spring(iconScaleAnim, {
+            toValue: 1.2,
+            tension: 200,
+            friction: 3,
+            useNativeDriver: true,
+          }),
+          Animated.spring(iconScaleAnim, {
+            toValue: 1,
+            tension: 200,
+            friction: 8,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      });
+    } else {
+      slideAnim.setValue(50);
+      fadeAnim.setValue(0);
+      iconScaleAnim.setValue(0);
+    }
+  }, [visible]);
+
   const getIconAndColor = () => {
     switch (type) {
       case 'success':
@@ -41,53 +90,81 @@ export default function CustomModal({
 
   const { icon, color } = getIconAndColor();
 
+  const handleButtonPress = (onPress: () => void) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress();
+  };
+
   return (
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="none"
       statusBarTranslucent
     >
-      <BlurView intensity={50} style={styles.backdrop}>
-        <View style={styles.container}>
-          <View style={styles.modal}>
-            <View style={[styles.iconContainer, { backgroundColor: color }]}>
-              <Text style={styles.icon}>{icon}</Text>
-            </View>
-            
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.message}>{message}</Text>
-            
-            <View style={styles.buttonContainer}>
-              {secondaryButton && (
+      <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]}>
+        <BlurView intensity={50} style={styles.blurView}>
+          <View style={styles.container}>
+            <Animated.View 
+              style={[
+                styles.modal,
+                {
+                  transform: [
+                    { translateY: slideAnim },
+                    { scale: fadeAnim },
+                  ],
+                },
+              ]}
+            >
+              <Animated.View 
+                style={[
+                  styles.iconContainer, 
+                  { 
+                    backgroundColor: color,
+                    transform: [{ scale: iconScaleAnim }],
+                  }
+                ]}
+              >
+                <Text style={styles.icon}>{icon}</Text>
+              </Animated.View>
+              
+              <Text style={styles.title}>{title}</Text>
+              <Text style={styles.message}>{message}</Text>
+              
+              <View style={styles.buttonContainer}>
+                {secondaryButton && (
+                  <TouchableOpacity
+                    style={[styles.button, styles.secondaryButton]}
+                    onPress={() => handleButtonPress(secondaryButton.onPress)}
+                  >
+                    <Text style={styles.secondaryButtonText}>
+                      {secondaryButton.text}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                
                 <TouchableOpacity
-                  style={[styles.button, styles.secondaryButton]}
-                  onPress={secondaryButton.onPress}
+                  style={[styles.button, styles.primaryButton, { backgroundColor: color }]}
+                  onPress={() => handleButtonPress(primaryButton.onPress)}
                 >
-                  <Text style={styles.secondaryButtonText}>
-                    {secondaryButton.text}
+                  <Text style={styles.primaryButtonText}>
+                    {primaryButton.text}
                   </Text>
                 </TouchableOpacity>
-              )}
-              
-              <TouchableOpacity
-                style={[styles.button, styles.primaryButton, { backgroundColor: color }]}
-                onPress={primaryButton.onPress}
-              >
-                <Text style={styles.primaryButtonText}>
-                  {primaryButton.text}
-                </Text>
-              </TouchableOpacity>
-            </View>
+              </View>
+            </Animated.View>
           </View>
-        </View>
-      </BlurView>
+        </BlurView>
+      </Animated.View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   backdrop: {
+    flex: 1,
+  },
+  blurView: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
