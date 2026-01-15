@@ -40,14 +40,17 @@ export const verifyFace = async (imageUri: string) => {
       name: 'face.jpg',
     } as any);
 
+    console.log('Verifying face with URI:', imageUri);
     const response = await api.post('/verify', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
 
+    console.log('Verification response:', response.data);
     return response.data;
-  } catch (error) {
-    throw new Error('Face verification failed');
+  } catch (error: any) {
+    console.error('Verification error:', error.response?.data || error.message);
+    throw error;
   }
 };
