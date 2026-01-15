@@ -8,6 +8,7 @@ import { typography } from '../theme/typography';
 import CameraView, { CameraViewRef } from '../components/CameraView';
 import PrimaryButton from '../components/PrimaryButton';
 import CustomModal from '../components/CustomModal';
+import LoadingOverlay from '../components/LoadingOverlay';
 import { enrollFace } from '../services/api';
 
 export default function EnrollScreen() {
@@ -106,6 +107,11 @@ export default function EnrollScreen() {
           text: modalState.type === 'success' ? 'Continue' : 'Try Again',
           onPress: modalState.type === 'success' ? handleSuccessConfirm : hideModal,
         }}
+      />
+      
+      <LoadingOverlay 
+        visible={isLoading} 
+        message="Processing..." 
       />
     </SafeAreaView>
   );
