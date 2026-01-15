@@ -16,6 +16,8 @@ export default function VerifyScreen() {
 
   const handleVerify = async () => {
     try {
+      // Start scanning animation
+      cameraRef.current?.startScanning();
       setIsLoading(true);
       
       const photo = await cameraRef.current?.capturePhoto();
@@ -33,6 +35,8 @@ export default function VerifyScreen() {
         'Unable to verify your identity. Please ensure your face is clearly visible and try again.'
       );
     } finally {
+      // Stop scanning animation
+      cameraRef.current?.stopScanning();
       setIsLoading(false);
     }
   };

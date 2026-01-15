@@ -78,9 +78,15 @@ export default function EnrollScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
       
-      <LoadingOverlay 
-        visible={isLoading} 
-        message="Analyzing face..." 
+      <CustomModal
+        visible={modalState.visible}
+        type={modalState.type}
+        title={modalState.title}
+        message={modalState.message}
+        primaryButton={{
+          text: modalState.type === 'success' ? 'Continue' : 'Try Again',
+          onPress: modalState.type === 'success' ? handleSuccessConfirm : hideModal,
+        }}
       />
     </SafeAreaView>
   );
