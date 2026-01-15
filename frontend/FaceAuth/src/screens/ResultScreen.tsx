@@ -1,7 +1,9 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { IconButton } from 'react-native-paper';
+import * as Haptics from 'expo-haptics';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 import { typography } from '../theme/typography';
@@ -56,11 +58,21 @@ export default function ResultScreen() {
         <GlassCard>
           <View style={styles.resultContainer}>
             <View style={styles.statusSection}>
-              <View style={[styles.statusIcon, { backgroundColor: statusColor }]}>
-                <Text style={styles.statusIconText}>
-                  {isSuccess ? '✓' : '✗'}
-                </Text>
-              </View>
+              <Animated.View 
+                style={[
+                  styles.statusIcon, 
+                  { 
+                    backgroundColor: statusColor,
+                    transform: [{ scale: scaleAnim }],
+                  }
+                ]}
+              >
+                <IconButton 
+                  icon={isSuccess ? 'check' : 'close'} 
+                  size={32} 
+                  iconColor={colors.surface}
+                />
+              </Animated.View>
               <Text style={[styles.statusText, { color: statusColor }]}>
                 {statusText}
               </Text>

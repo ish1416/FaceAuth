@@ -81,11 +81,11 @@ export default function CustomModal({
   const getIconAndColor = () => {
     switch (type) {
       case 'success':
-        return { icon: '✓', color: colors.success };
+        return { icon: 'check-circle', color: colors.success };
       case 'error':
-        return { icon: '✗', color: colors.error };
+        return { icon: 'close-circle', color: colors.error };
       default:
-        return { icon: 'i', color: colors.primary };
+        return { icon: 'information', color: colors.primary };
     }
   };
 
@@ -126,7 +126,11 @@ export default function CustomModal({
                   }
                 ]}
               >
-                <Text style={styles.icon}>{icon}</Text>
+                <IconButton 
+                  icon={icon} 
+                  size={32} 
+                  iconColor={colors.surface}
+                />
               </Animated.View>
               
               <Text style={styles.title}>{title}</Text>
