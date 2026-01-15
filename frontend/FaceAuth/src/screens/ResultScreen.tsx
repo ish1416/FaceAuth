@@ -44,7 +44,15 @@ export default function ResultScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <View style={styles.content}>
+      <Animated.View 
+        style={[
+          styles.content,
+          {
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }],
+          },
+        ]}
+      >
         <GlassCard>
           <View style={styles.resultContainer}>
             <View style={styles.statusSection}>
@@ -61,15 +69,19 @@ export default function ResultScreen() {
             <View style={styles.scoreSection}>
               <Text style={styles.scoreLabel}>Match Confidence</Text>
               <View style={styles.scoreContainer}>
-                <Text style={[styles.scoreValue, { color: getScoreColor(matchPercentage) }]}>
-                  {matchPercentage}%
-                </Text>
+                <Animated.Text style={[styles.scoreValue, { color: getScoreColor(matchPercentage) }]}>
+                  {Math.round(animatedScore._value)}%
+                </Animated.Text>
                 <View style={styles.scoreBar}>
-                  <View 
+                  <Animated.View 
                     style={[
                       styles.scoreProgress, 
                       { 
-                        width: `${matchPercentage}%`,
+                        width: progressAnim.interpolate({
+                          inputRange: [0, 100],
+                          outputRange: ['0%', '100%'],
+                          extrapolate: 'clamp',
+                        }),
                         backgroundColor: getScoreColor(matchPercentage)
                       }
                     ]} 
@@ -90,7 +102,7 @@ export default function ResultScreen() {
             onPress={handleRestart}
           />
         </View>
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }
