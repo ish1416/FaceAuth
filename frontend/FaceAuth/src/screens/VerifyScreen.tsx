@@ -1,12 +1,12 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 import CameraView, { CameraViewRef } from '../components/CameraView';
 import PrimaryButton from '../components/PrimaryButton';
-import LoadingOverlay from '../components/LoadingOverlay';
+import CustomModal from '../components/CustomModal';
 import { verifyFace } from '../services/api';
 
 export default function VerifyScreen() {
@@ -81,9 +81,15 @@ export default function VerifyScreen() {
         </View>
       </ScrollView>
       
-      <LoadingOverlay 
-        visible={isLoading} 
-        message="Verifying identity..." 
+      <CustomModal
+        visible={modalState.visible}
+        type={modalState.type}
+        title={modalState.title}
+        message={modalState.message}
+        primaryButton={{
+          text: 'Try Again',
+          onPress: handleErrorConfirm,
+        }}
       />
     </SafeAreaView>
   );
