@@ -7,36 +7,44 @@ const api = axios.create({
   timeout: 10000,
 });
 
-export const enrollFace = async (photoUri: string) => {
-  const formData = new FormData();
-  formData.append('image', {
-    uri: photoUri,
-    type: 'image/jpeg',
-    name: 'face.jpg',
-  } as any);
+export const enrollFace = async (imageUri: string) => {
+  try {
+    const formData = new FormData();
+    formData.append('image', {
+      uri: imageUri,
+      type: 'image/jpeg',
+      name: 'face.jpg',
+    } as any);
 
-  const response = await api.post('/enroll', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+    const response = await api.post('/enroll', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
-  return response.data;
+    return response.data;
+  } catch (error) {
+    throw new Error('Face enrollment failed');
+  }
 };
 
-export const verifyFace = async (photoUri: string) => {
-  const formData = new FormData();
-  formData.append('image', {
-    uri: photoUri,
-    type: 'image/jpeg',
-    name: 'face.jpg',
-  } as any);
+export const verifyFace = async (imageUri: string) => {
+  try {
+    const formData = new FormData();
+    formData.append('image', {
+      uri: imageUri,
+      type: 'image/jpeg',
+      name: 'face.jpg',
+    } as any);
 
-  const response = await api.post('/verify', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+    const response = await api.post('/verify', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
-  return response.data;
+    return response.data;
+  } catch (error) {
+    throw new Error('Face verification failed');
+  }
 };
