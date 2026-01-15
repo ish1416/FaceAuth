@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, Animated } from 'react-native';
 import { colors } from '../theme/colors';
 
 interface PrimaryButtonProps {
@@ -9,14 +9,35 @@ interface PrimaryButtonProps {
 }
 
 export default function PrimaryButton({ title, onPress, disabled = false }: PrimaryButtonProps) {
+  const scaleValue = React.useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
   return (
-    <TouchableOpacity 
-      style={[styles.button, disabled && styles.disabled]} 
-      onPress={onPress}
-      disabled={disabled}
-    >
-      <Text style={styles.text}>{title}</Text>
-    </TouchableOpacity>
+    <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+      <TouchableOpacity 
+        style={[styles.button, disabled && styles.disabled]} 
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.text}>{title}</Text>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
