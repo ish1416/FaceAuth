@@ -17,6 +17,8 @@ export default function EnrollScreen() {
 
   const handleCapture = async () => {
     try {
+      // Start scanning animation
+      cameraRef.current?.startScanning();
       setIsLoading(true);
       
       const photo = await cameraRef.current?.capturePhoto();
@@ -38,6 +40,8 @@ export default function EnrollScreen() {
         'Unable to enroll your face. Please ensure your face is clearly visible and try again.'
       );
     } finally {
+      // Stop scanning animation
+      cameraRef.current?.stopScanning();
       setIsLoading(false);
     }
   };

@@ -2,11 +2,14 @@ import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'rea
 import { View, Text, StyleSheet } from 'react-native';
 import { CameraView as ExpoCameraView, useCameraPermissions } from 'expo-camera';
 import GlassCard from './GlassCard';
+import ScanningOverlay from './ScanningOverlay';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 
 export interface CameraViewRef {
   capturePhoto: () => Promise<any>;
+  startScanning: () => void;
+  stopScanning: () => void;
 }
 
 interface CameraViewProps {
@@ -16,6 +19,7 @@ interface CameraViewProps {
 const CameraView = forwardRef<CameraViewRef, CameraViewProps>((props, ref) => {
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraRef, setCameraRef] = useState<ExpoCameraView | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
 
   useImperativeHandle(ref, () => ({
     capturePhoto: async () => {
@@ -24,6 +28,8 @@ const CameraView = forwardRef<CameraViewRef, CameraViewProps>((props, ref) => {
       }
       return null;
     },
+    startScanning: () => setIsScanning(true),
+    stopScanning: () => setIsScanning(false),
   }));
 
   useEffect(() => {
@@ -59,6 +65,10 @@ const CameraView = forwardRef<CameraViewRef, CameraViewProps>((props, ref) => {
           ref={setCameraRef}
           style={styles.camera}
           facing="front"
+        />
+        <ScanningOverlay 
+          isScanning={isScanning} 
+          height={styles.cameraContainer.aspectRatio ? 300 : 400} 
         />
       </View>
     </GlassCard>
