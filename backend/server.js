@@ -78,6 +78,32 @@ app.post('/enroll', upload.single('image'), async (req, res) => {
   }
 });
 
+app.post('/verify', upload.single('image'), async (req, res) => {
+  if (!enrolledDescriptor) {
+    return res.status(400).json({ error: 'No enrolled face found' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image uploaded' });
+  }
+
+  try {
+    const img = await loadImage(req.file.path);
+    const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+    
+    if (!detection) {
+      return res.status(400).json({ error: 'No face detected' });
+    }
+
+    const distance = faceapi.euclideanDistance(enrolledDescriptor, detection.descriptor);
+    const success = distance <= 0.6;
+
+    res.json({ success, distance });
+  } catch (error) {
+    res.status(500).json({ error: 'Face processing failed' });
+  }
+});
+
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
   await loadModels();
