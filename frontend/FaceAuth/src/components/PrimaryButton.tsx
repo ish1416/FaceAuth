@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, Animated } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { colors } from '../theme/colors';
 
 interface PrimaryButtonProps {
@@ -10,26 +11,64 @@ interface PrimaryButtonProps {
 
 export default function PrimaryButton({ title, onPress, disabled = false }: PrimaryButtonProps) {
   const scaleValue = React.useRef(new Animated.Value(1)).current;
+  const glowValue = React.useRef(new Animated.Value(0)).current;
 
   const handlePressIn = () => {
-    Animated.spring(scaleValue, {
-      toValue: 0.95,
-      useNativeDriver: true,
-    }).start();
+    if (!disabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      Animated.parallel([
+        Animated.spring(scaleValue, {
+          toValue: 0.95,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowValue, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
   };
 
   const handlePressOut = () => {
-    Animated.spring(scaleValue, {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.spring(scaleValue, {
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+      Animated.timing(glowValue, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+    ]).start();
   };
+
+  const handlePress = () => {
+    if (!disabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      onPress();
+    }
+  };
+
+  const glowOpacity = glowValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.3],
+  });
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+      <Animated.View 
+        style={[
+          styles.glowContainer,
+          {
+            opacity: glowOpacity,
+          },
+        ]}
+      />
       <TouchableOpacity 
         style={[styles.button, disabled && styles.disabled]} 
-        onPress={onPress}
+        onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled}
@@ -42,6 +81,16 @@ export default function PrimaryButton({ title, onPress, disabled = false }: Prim
 }
 
 const styles = StyleSheet.create({
+  glowContainer: {
+    position: 'absolute',
+    top: -4,
+    left: -4,
+    right: -4,
+    bottom: -4,
+    backgroundColor: colors.primary,
+    borderRadius: 28,
+    zIndex: -1,
+  },
   button: {
     height: 52,
     backgroundColor: colors.primary,
