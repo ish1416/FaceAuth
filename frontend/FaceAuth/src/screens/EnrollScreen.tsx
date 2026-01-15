@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '../theme/colors';
@@ -7,7 +7,7 @@ import { spacing } from '../theme/spacing';
 import { typography } from '../theme/typography';
 import CameraView, { CameraViewRef } from '../components/CameraView';
 import PrimaryButton from '../components/PrimaryButton';
-import LoadingOverlay from '../components/LoadingOverlay';
+import CustomModal from '../components/CustomModal';
 import { enrollFace } from '../services/api';
 
 export default function EnrollScreen() {
