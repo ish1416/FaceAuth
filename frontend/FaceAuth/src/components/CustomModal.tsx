@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { IconButton } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
