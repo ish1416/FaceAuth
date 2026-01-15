@@ -14,54 +14,36 @@ export default function EnrollScreen() {
   const navigation = useNavigation();
   const cameraRef = useRef<CameraViewRef>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [modalState, setModalState] = useState<{
-    visible: boolean;
-    type: 'success' | 'error';
-    title: string;
-    message: string;
-  }>({ visible: false, type: 'success', title: '', message: '' });
-
-  const showModal = (type: 'success' | 'error', title: string, message: string) => {
-    setModalState({ visible: true, type, title, message });
-  };
-
-  const hideModal = () => {
-    setModalState(prev => ({ ...prev, visible: false }));
-  };
 
   const handleCapture = async () => {
     try {
+      // Start scanning animation
       cameraRef.current?.startScanning();
       setIsLoading(true);
       
       const photo = await cameraRef.current?.capturePhoto();
       if (!photo) {
-        showModal('error', 'Capture Failed', 'Failed to capture photo. Please try again.');
+        Alert.alert('Error', 'Failed to capture photo. Please try again.');
         return;
       }
 
       await enrollFace(photo.uri);
       
-      showModal(
-        'success',
-        'Enrollment Successful!',
-        'Your face has been enrolled successfully. You can now verify your identity.'
+      Alert.alert(
+        'Success!', 
+        'Face enrolled successfully. You can now verify your identity.',
+        [{ text: 'Continue', onPress: () => navigation.navigate('Verify' as never) }]
       );
     } catch (error) {
-      showModal(
-        'error',
+      Alert.alert(
         'Enrollment Failed',
         'Unable to enroll your face. Please ensure your face is clearly visible and try again.'
       );
     } finally {
+      // Stop scanning animation
       cameraRef.current?.stopScanning();
       setIsLoading(false);
     }
-  };
-
-  const handleSuccessConfirm = () => {
-    hideModal();
-    navigation.navigate('Verify' as never);
   };
 
   return (
