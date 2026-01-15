@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'http://192.168.1.100:3000'; // Replace with your actual IP
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -16,15 +16,18 @@ export const enrollFace = async (imageUri: string) => {
       name: 'face.jpg',
     } as any);
 
+    console.log('Enrolling face with URI:', imageUri);
     const response = await api.post('/enroll', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
 
+    console.log('Enrollment response:', response.data);
     return response.data;
-  } catch (error) {
-    throw new Error('Face enrollment failed');
+  } catch (error: any) {
+    console.error('Enrollment error:', error.response?.data || error.message);
+    throw error;
   }
 };
 
