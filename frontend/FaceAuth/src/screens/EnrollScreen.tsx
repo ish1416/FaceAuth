@@ -1,9 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
+import { typography } from '../theme/typography';
 import CameraView, { CameraViewRef } from '../components/CameraView';
 import PrimaryButton from '../components/PrimaryButton';
 import LoadingOverlay from '../components/LoadingOverlay';
@@ -42,27 +43,36 @@ export default function EnrollScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Face Enrollment</Text>
-          <Text style={styles.subtitle}>
-            Position your face within the frame and capture a clear photo for enrollment
-          </Text>
-        </View>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView 
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>Face Enrollment</Text>
+            <Text style={styles.subtitle}>
+              Position your face within the frame and capture a clear photo for enrollment
+            </Text>
+          </View>
 
-        <View style={styles.cameraSection}>
-          <CameraView ref={cameraRef} />
-        </View>
+          <View style={styles.cameraSection}>
+            <CameraView ref={cameraRef} />
+          </View>
 
-        <View style={styles.buttonSection}>
-          <PrimaryButton 
-            title="Capture & Enroll" 
-            onPress={handleCapture}
-            disabled={isLoading}
-          />
-        </View>
-      </ScrollView>
+          <View style={styles.buttonSection}>
+            <PrimaryButton 
+              title="Capture & Enroll" 
+              onPress={handleCapture}
+              disabled={isLoading}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
       
       <LoadingOverlay 
         visible={isLoading} 
@@ -77,6 +87,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  keyboardView: {
+    flex: 1,
+  },
   content: {
     flexGrow: 1,
     paddingHorizontal: spacing.xl,
@@ -87,23 +100,22 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    ...typography.title,
     color: colors.textPrimary,
     marginBottom: spacing.md,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
+    ...typography.subtitle,
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
     paddingHorizontal: spacing.md,
   },
   cameraSection: {
     flex: 1,
     justifyContent: 'center',
     marginBottom: spacing.xl,
+    minHeight: 400,
   },
   buttonSection: {
     alignItems: 'center',
