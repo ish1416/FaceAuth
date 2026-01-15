@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const faceapi = require('face-api.js');
 const { Canvas, Image, ImageData, loadImage } = require('canvas');
+const cors = require('cors');
 
 // Monkey patch face-api.js with canvas
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
@@ -13,6 +14,9 @@ const PORT = 3000;
 
 // Global variable to store enrolled face descriptor
 let enrolledDescriptor = null;
+
+// Enable CORS for all routes
+app.use(cors());
 
 // Load face-api.js models
 async function loadModels() {
