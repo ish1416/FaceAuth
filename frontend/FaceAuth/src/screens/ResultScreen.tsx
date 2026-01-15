@@ -21,6 +21,11 @@ export default function ResultScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { result } = route.params as RouteParams;
+  
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const scoreCountAnim = useRef(new Animated.Value(0)).current;
 
   const isSuccess = result.success;
   const statusColor = isSuccess ? colors.success : colors.error;
@@ -33,6 +38,44 @@ export default function ResultScreen() {
   const explanationText = isSuccess 
     ? 'Your identity has been successfully verified. Access granted.'
     : 'Identity verification failed. Please ensure proper lighting and face positioning.';
+
+  useEffect(() => {
+    // Trigger haptic feedback based on result
+    Haptics.notificationAsync(
+      isSuccess 
+        ? Haptics.NotificationFeedbackType.Success
+        : Haptics.NotificationFeedbackType.Error
+    );
+
+    // Entrance animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 100,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      // Progress bar animation after entrance
+      Animated.timing(progressAnim, {
+        toValue: matchPercentage,
+        duration: 1500,
+        useNativeDriver: false,
+      }).start();
+      
+      // Score counting animation
+      Animated.timing(scoreCountAnim, {
+        toValue: matchPercentage,
+        duration: 1500,
+        useNativeDriver: false,
+      }).start();
+    });
+  }, []);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return colors.success;
@@ -82,7 +125,7 @@ export default function ResultScreen() {
               <Text style={styles.scoreLabel}>Match Confidence</Text>
               <View style={styles.scoreContainer}>
                 <Animated.Text style={[styles.scoreValue, { color: getScoreColor(matchPercentage) }]}>
-                  {Math.round(animatedScore._value)}%
+                  {Math.round(scoreCountAnim._value)}%
                 </Animated.Text>
                 <View style={styles.scoreBar}>
                   <Animated.View 
