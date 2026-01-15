@@ -3,13 +3,16 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const faceapi = require('face-api.js');
-const { Canvas, Image, ImageData } = require('canvas');
+const { Canvas, Image, ImageData, loadImage } = require('canvas');
 
 // Monkey patch face-api.js with canvas
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 
 const app = express();
 const PORT = 3000;
+
+// Global variable to store enrolled face descriptor
+let enrolledDescriptor = null;
 
 // Load face-api.js models
 async function loadModels() {
@@ -53,6 +56,26 @@ app.post('/upload', upload.single('image'), (req, res) => {
     filename: req.file.filename,
     path: req.file.path
   });
+});
+
+app.post('/enroll', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image uploaded' });
+  }
+
+  try {
+    const img = await loadImage(req.file.path);
+    const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+    
+    if (!detection) {
+      return res.status(400).json({ error: 'No face detected' });
+    }
+
+    enrolledDescriptor = detection.descriptor;
+    res.json({ enrolled: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Face processing failed' });
+  }
 });
 
 app.listen(PORT, async () => {
