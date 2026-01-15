@@ -5,27 +5,41 @@ import { spacing } from '../theme/spacing';
 
 interface GlassCardProps {
   children: React.ReactNode;
+  intensity?: number;
 }
 
-export default function GlassCard({ children }: GlassCardProps) {
+export default function GlassCard({ children, intensity = 80 }: GlassCardProps) {
   return (
-    <BlurView intensity={30} style={styles.container}>
-      <View style={styles.content}>
-        {children}
-      </View>
-    </BlurView>
+    <View style={styles.container}>
+      <BlurView intensity={intensity} style={styles.blurView}>
+        <View style={styles.content}>
+          {children}
+        </View>
+      </BlurView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  blurView: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   content: {
     padding: spacing.lg,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
 });
