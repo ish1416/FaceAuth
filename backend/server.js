@@ -83,27 +83,38 @@ app.post('/enroll', upload.single('image'), async (req, res) => {
 });
 
 app.post('/verify', upload.single('image'), async (req, res) => {
+  console.log('Verify endpoint called');
+  
   if (!enrolledDescriptor) {
+    console.log('No enrolled descriptor found');
     return res.status(400).json({ error: 'No enrolled face found' });
   }
 
   if (!req.file) {
+    console.log('No file uploaded');
     return res.status(400).json({ error: 'No image uploaded' });
   }
 
   try {
+    console.log('Loading image for verification:', req.file.path);
     const img = await loadImage(req.file.path);
+    
+    console.log('Detecting face...');
     const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
     
     if (!detection) {
+      console.log('No face detected in verification image');
       return res.status(400).json({ error: 'No face detected' });
     }
 
+    console.log('Computing distance...');
     const distance = faceapi.euclideanDistance(enrolledDescriptor, detection.descriptor);
     const success = distance <= 0.6;
 
+    console.log('Verification result:', { success, distance });
     res.json({ success, distance });
   } catch (error) {
+    console.error('Verification processing error:', error);
     res.status(500).json({ error: 'Face processing failed' });
   }
 });
