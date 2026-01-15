@@ -2,9 +2,23 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const faceapi = require('face-api.js');
+const { Canvas, Image, ImageData } = require('canvas');
+
+// Monkey patch face-api.js with canvas
+faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 
 const app = express();
 const PORT = 3000;
+
+// Load face-api.js models
+async function loadModels() {
+  const modelPath = path.join(__dirname, 'models');
+  await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelPath);
+  await faceapi.nets.faceLandmark68Net.loadFromDisk(modelPath);
+  await faceapi.nets.faceRecognitionNet.loadFromDisk(modelPath);
+  console.log('Models loaded');
+}
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -41,6 +55,7 @@ app.post('/upload', upload.single('image'), (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
+  await loadModels();
 });
