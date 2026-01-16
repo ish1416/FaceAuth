@@ -85,6 +85,14 @@ const upload = multer({ storage });
 
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'FaceAuth Backend Running',
+    version: '1.0.0',
+    endpoints: ['/health', '/enroll', '/verify']
+  });
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
