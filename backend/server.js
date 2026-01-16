@@ -10,7 +10,7 @@ const cors = require('cors');
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Global variable to store enrolled face descriptor
 let enrolledDescriptor = null;
@@ -38,7 +38,11 @@ function loadDescriptor() {
 }
 
 // Enable CORS for all routes
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // Load face-api.js models
 async function loadModels() {
