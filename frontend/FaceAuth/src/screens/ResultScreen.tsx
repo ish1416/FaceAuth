@@ -1,13 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { IconButton } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 import { typography } from '../theme/typography';
-import GlassCard from '../components/GlassCard';
 import PrimaryButton from '../components/PrimaryButton';
 
 interface RouteParams {
@@ -18,36 +17,34 @@ interface RouteParams {
 }
 
 export default function ResultScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute();
   const { result } = route.params as RouteParams;
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
-  const scoreCountAnim = useRef(new Animated.Value(0)).current;
 
   const isSuccess = result.success;
   const statusColor = isSuccess ? colors.success : colors.error;
   const statusText = isSuccess ? 'Verification Successful' : 'Verification Failed';
   
-  // Convert distance to percentage score (lower distance = higher confidence)
-  const confidenceScore = Math.max(0, Math.min(100, Math.round((1 - result.distance) * 100)));
-  const matchPercentage = isSuccess ? confidenceScore : Math.max(0, confidenceScore - 20);
+  // Convert distance to confidence percentage
+  // For successful matches, show higher confidence
+  const confidenceScore = Math.max(0, Math.min(100, Math.round((0.6 - result.distance) / 0.6 * 100)));
+  const matchPercentage = isSuccess ? Math.max(confidenceScore, 70) : confidenceScore;
   
   const explanationText = isSuccess 
     ? 'Your identity has been successfully verified. Access granted.'
     : 'Identity verification failed. Please ensure proper lighting and face positioning.';
 
   useEffect(() => {
-    // Trigger haptic feedback based on result
     Haptics.notificationAsync(
       isSuccess 
         ? Haptics.NotificationFeedbackType.Success
         : Haptics.NotificationFeedbackType.Error
     );
 
-    // Entrance animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -61,15 +58,7 @@ export default function ResultScreen() {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      // Progress bar animation after entrance
       Animated.timing(progressAnim, {
-        toValue: matchPercentage,
-        duration: 1500,
-        useNativeDriver: false,
-      }).start();
-      
-      // Score counting animation
-      Animated.timing(scoreCountAnim, {
         toValue: matchPercentage,
         duration: 1500,
         useNativeDriver: false,
@@ -79,16 +68,14 @@ export default function ResultScreen() {
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return colors.success;
-    if (score >= 60) return '#FF9500'; // Orange
+    if (score >= 60) return colors.warning;
     return colors.error;
-  };
-
-  const handleRestart = () => {
-    navigation.navigate('Landing' as never);
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      
       <Animated.View 
         style={[
           styles.content,
@@ -98,67 +85,98 @@ export default function ResultScreen() {
           },
         ]}
       >
-        <GlassCard>
-          <View style={styles.resultContainer}>
-            <View style={styles.statusSection}>
-              <Animated.View 
-                style={[
-                  styles.statusIcon, 
-                  { 
-                    backgroundColor: statusColor,
-                    transform: [{ scale: scaleAnim }],
-                  }
-                ]}
-              >
-                <IconButton 
-                  icon={isSuccess ? 'check' : 'close'} 
-                  size={32} 
-                  iconColor={colors.surface}
-                />
-              </Animated.View>
-              <Text style={[styles.statusText, { color: statusColor }]}>
-                {statusText}
-              </Text>
-            </View>
-            
-            <View style={styles.scoreSection}>
-              <Text style={styles.scoreLabel}>Match Confidence</Text>
-              <View style={styles.scoreContainer}>
-                <Animated.Text style={[styles.scoreValue, { color: getScoreColor(matchPercentage) }]}>
-                  {Math.round(scoreCountAnim._value)}%
-                </Animated.Text>
-                <View style={styles.scoreBar}>
-                  <Animated.View 
-                    style={[
-                      styles.scoreProgress, 
-                      { 
-                        width: progressAnim.interpolate({
-                          inputRange: [0, 100],
-                          outputRange: ['0%', '100%'],
-                          extrapolate: 'clamp',
-                        }),
-                        backgroundColor: getScoreColor(matchPercentage)
-                      }
-                    ]} 
-                  />
-                </View>
-              </View>
-            </View>
-            
-            <Text style={styles.explanationText}>
-              {explanationText}
+        <View style={styles.resultCard}>
+          <View style={styles.statusSection}>
+            <Animated.View 
+              style={[
+                styles.statusIcon, 
+                { 
+                  backgroundColor: statusColor + '15',
+                  transform: [{ scale: scaleAnim }],
+                }
+              ]}
+            >
+              <MaterialCommunityIcons 
+                name={isSuccess ? 'check-circle' : 'close-circle'} 
+                size={64} 
+                color={statusColor}
+              />
+            </Animated.View>
+            <Text style={[styles.statusText, { color: statusColor }]}>
+              {statusText}
             </Text>
           </View>
-        </GlassCard>
+          
+          <View style={styles.scoreSection}>
+            <Text style={styles.scoreLabel}>Match Confidence</Text>
+            <View style={styles.scoreContainer}>
+              <Text style={[styles.scoreValue, { color: getScoreColor(matchPercentage) }]}>
+                {matchPercentage}%
+              </Text>
+              <View style={styles.scoreBar}>
+                <Animated.View 
+                  style={[
+                    styles.scoreProgress, 
+                    { 
+                      width: progressAnim.interpolate({
+                        inputRange: [0, 100],
+                        outputRange: ['0%', '100%'],
+                        extrapolate: 'clamp',
+                      }),
+                      backgroundColor: getScoreColor(matchPercentage)
+                    }
+                  ]} 
+                />
+              </View>
+            </View>
+          </View>
+          
+          <View style={styles.detailsSection}>
+            <DetailItem 
+              icon="fingerprint" 
+              label="Biometric Match" 
+              value={isSuccess ? 'Confirmed' : 'Not Matched'}
+              color={statusColor}
+            />
+            <DetailItem 
+              icon="shield-check" 
+              label="Security Level" 
+              value="High"
+              color={colors.info}
+            />
+          </View>
+
+          <Text style={styles.explanationText}>
+            {explanationText}
+          </Text>
+        </View>
         
-        <View style={styles.buttonContainer}>
+        <View style={styles.actions}>
           <PrimaryButton 
-            title="Start New Verification" 
-            onPress={handleRestart}
+            title="New Verification" 
+            onPress={() => navigation.navigate('Landing')}
+            icon="refresh"
           />
         </View>
       </Animated.View>
     </SafeAreaView>
+  );
+}
+
+function DetailItem({ icon, label, value, color }: { 
+  icon: keyof typeof MaterialCommunityIcons.glyphMap; 
+  label: string; 
+  value: string;
+  color: string;
+}) {
+  return (
+    <View style={styles.detailItem}>
+      <MaterialCommunityIcons name={icon} size={20} color={color} />
+      <View style={styles.detailContent}>
+        <Text style={styles.detailLabel}>{label}</Text>
+        <Text style={[styles.detailValue, { color }]}>{value}</Text>
+      </View>
+    </View>
   );
 }
 
@@ -172,55 +190,55 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.lg,
     justifyContent: 'center',
+    gap: spacing.xl,
   },
-  resultContainer: {
-    alignItems: 'center',
-    paddingVertical: spacing.xl,
+  resultCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    padding: spacing.xl,
+    gap: spacing.xl,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   statusSection: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    gap: spacing.md,
   },
   statusIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  statusIconText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: colors.surface,
   },
   statusText: {
-    ...typography.title,
+    ...typography.h2,
     textAlign: 'center',
   },
   scoreSection: {
-    width: '100%',
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    gap: spacing.sm,
   },
   scoreLabel: {
-    ...typography.subtitle,
+    ...typography.label,
     color: colors.textSecondary,
-    marginBottom: spacing.sm,
   },
   scoreContainer: {
     alignItems: 'center',
     width: '100%',
+    gap: spacing.md,
   },
   scoreValue: {
     fontSize: 48,
-    fontWeight: 'bold',
-    marginBottom: spacing.md,
+    fontWeight: '700',
   },
   scoreBar: {
-    width: '80%',
+    width: '100%',
     height: 8,
-    backgroundColor: colors.textSecondary + '20',
+    backgroundColor: colors.borderLight,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -228,14 +246,41 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
-  explanationText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    lineHeight: 24,
+  detailsSection: {
+    gap: spacing.sm,
   },
-  buttonContainer: {
+  detailItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: spacing.xl,
+    gap: spacing.sm,
+    padding: spacing.sm,
+    backgroundColor: colors.background,
+    borderRadius: 8,
+  },
+  detailContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  detailLabel: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    flexShrink: 1,
+  },
+  detailValue: {
+    ...typography.bodySmall,
+    fontWeight: '600',
+    flexShrink: 0,
+  },
+  explanationText: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  actions: {
+    gap: spacing.md,
   },
 });

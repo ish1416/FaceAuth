@@ -1,107 +1,146 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { CameraView as ExpoCameraView, useCameraPermissions } from 'expo-camera';
-import GlassCard from './GlassCard';
-import ScanningOverlay from './ScanningOverlay';
+import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet, Animated } from 'react-native';
+import { CameraView as ExpoCameraView } from 'expo-camera';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 
-export interface CameraViewRef {
-  capturePhoto: () => Promise<any>;
-  startScanning: () => void;
-  stopScanning: () => void;
-}
-
 interface CameraViewProps {
-  // Add any additional props if needed
+  cameraRef: React.RefObject<ExpoCameraView | null>;
+  facing: 'front' | 'back';
 }
 
-const CameraView = forwardRef<CameraViewRef, CameraViewProps>((props, ref) => {
-  const [permission, requestPermission] = useCameraPermissions();
-  const [cameraRef, setCameraRef] = useState<ExpoCameraView | null>(null);
-  const [isScanning, setIsScanning] = useState(false);
-
-  useImperativeHandle(ref, () => ({
-    capturePhoto: async () => {
-      if (cameraRef) {
-        return await cameraRef.takePictureAsync();
-      }
-      return null;
-    },
-    startScanning: () => setIsScanning(true),
-    stopScanning: () => setIsScanning(false),
-  }));
+export default function CameraView({ cameraRef, facing }: CameraViewProps) {
+  const scanLineAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (!permission?.granted) {
-      requestPermission();
-    }
-  }, [permission]);
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scanLineAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scanLineAnim, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
-  if (!permission) {
-    return (
-      <GlassCard>
-        <View style={styles.messageContainer}>
-          <Text style={styles.message}>Loading camera...</Text>
-        </View>
-      </GlassCard>
-    );
-  }
-
-  if (!permission.granted) {
-    return (
-      <GlassCard>
-        <View style={styles.messageContainer}>
-          <Text style={styles.message}>Camera permission required</Text>
-        </View>
-      </GlassCard>
-    );
-  }
+  const scanLineTranslateY = scanLineAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 300],
+  });
 
   return (
-    <GlassCard>
+    <View style={styles.container}>
       <View style={styles.cameraContainer}>
         <ExpoCameraView
-          ref={setCameraRef}
+          ref={cameraRef}
           style={styles.camera}
-          facing="front"
+          facing={facing}
         />
-        <ScanningOverlay 
-          isScanning={isScanning} 
-          height={styles.cameraContainer.aspectRatio ? 300 : 400} 
+        
+        {/* Corner Brackets */}
+        <View style={styles.overlay}>
+          <View style={[styles.corner, styles.topLeft]} />
+          <View style={[styles.corner, styles.topRight]} />
+          <View style={[styles.corner, styles.bottomLeft]} />
+          <View style={[styles.corner, styles.bottomRight]} />
+          
+          {/* Scan Line */}
+          <Animated.View
+            style={[
+              styles.scanLine,
+              {
+                transform: [{ translateY: scanLineTranslateY }],
+              },
+            ]}
+          />
+        </View>
+      </View>
+      
+      <View style={styles.iconContainer}>
+        <MaterialCommunityIcons 
+          name="face-recognition" 
+          size={32} 
+          color={colors.primary} 
         />
       </View>
-    </GlassCard>
+    </View>
   );
-});
+}
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+  },
   cameraContainer: {
-    aspectRatio: 3 / 4,
-    borderRadius: 16,
+    width: 320,
+    height: 400,
+    borderRadius: 8,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    backgroundColor: colors.surface,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowRadius: 12,
+    elevation: 8,
   },
   camera: {
     flex: 1,
   },
-  messageContainer: {
-    aspectRatio: 3 / 4,
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  message: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    textAlign: 'center',
+  corner: {
+    position: 'absolute',
+    width: 40,
+    height: 40,
+    borderColor: colors.primary,
+  },
+  topLeft: {
+    top: 20,
+    left: 20,
+    borderTopWidth: 3,
+    borderLeftWidth: 3,
+  },
+  topRight: {
+    top: 20,
+    right: 20,
+    borderTopWidth: 3,
+    borderRightWidth: 3,
+  },
+  bottomLeft: {
+    bottom: 20,
+    left: 20,
+    borderBottomWidth: 3,
+    borderLeftWidth: 3,
+  },
+  bottomRight: {
+    bottom: 20,
+    right: 20,
+    borderBottomWidth: 3,
+    borderRightWidth: 3,
+  },
+  scanLine: {
+    width: '80%',
+    height: 2,
+    backgroundColor: colors.primary,
+    opacity: 0.6,
+  },
+  iconContainer: {
+    marginTop: spacing.lg,
+    width: 64,
+    height: 64,
+    borderRadius: 8,
+    backgroundColor: colors.primaryLight + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
-
-export default CameraView;

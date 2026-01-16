@@ -1,68 +1,74 @@
 import React from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { IconButton } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 import { typography } from '../theme/typography';
 import PrimaryButton from '../components/PrimaryButton';
-import GlassCard from '../components/GlassCard';
 
 export default function LandingScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView 
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <GlassCard>
-              <View style={styles.titleContainer}>
-                <View style={styles.iconContainer}>
-                  <IconButton 
-                    icon="face-recognition" 
-                    size={64} 
-                    iconColor={colors.primary}
-                  />
-                </View>
-                <Text style={styles.title}>FaceAuth</Text>
-                <Text style={styles.subtitle}>Secure Face Authentication</Text>
-                <Text style={styles.description}>
-                  Advanced biometric security powered by AI face recognition technology
-                </Text>
-              </View>
-            </GlassCard>
-          </View>
-          
-          <View style={styles.featuresContainer}>
-            <View style={styles.featureRow}>
-              <View style={styles.feature}>
-                <IconButton icon="shield-check" size={32} iconColor={colors.success} />
-                <Text style={styles.featureText}>Secure</Text>
-              </View>
-              <View style={styles.feature}>
-                <IconButton icon="lightning-bolt" size={32} iconColor={colors.warning} />
-                <Text style={styles.featureText}>Fast</Text>
-              </View>
-              <View style={styles.feature}>
-                <IconButton icon="fingerprint" size={32} iconColor={colors.accent} />
-                <Text style={styles.featureText}>Accurate</Text>
-              </View>
-            </View>
-          </View>
-          
-          <View style={styles.buttonContainer}>
-            <PrimaryButton 
-              title="Get Started" 
-              onPress={() => navigation.navigate('Enroll' as never)}
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons 
+              name="face-recognition" 
+              size={64} 
+              color={colors.primary} 
             />
           </View>
+          
+          <Text style={styles.title}>FaceAuth</Text>
+          <Text style={styles.subtitle}>
+            Secure Biometric Authentication System
+          </Text>
+          <Text style={styles.description}>
+            Advanced facial recognition technology for secure identity verification and access control
+          </Text>
         </View>
-      </KeyboardAvoidingView>
+
+        <View style={styles.features}>
+          <View style={styles.featureItem}>
+            <MaterialCommunityIcons 
+              name="shield-check" 
+              size={24} 
+              color={colors.success} 
+            />
+            <Text style={styles.featureText}>Bank-grade Security</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <MaterialCommunityIcons 
+              name="lightning-bolt" 
+              size={24} 
+              color={colors.warning} 
+            />
+            <Text style={styles.featureText}>Instant Verification</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <MaterialCommunityIcons 
+              name="fingerprint" 
+              size={24} 
+              color={colors.info} 
+            />
+            <Text style={styles.featureText}>Biometric Precision</Text>
+          </View>
+        </View>
+
+        <View style={styles.bottom}>
+          <PrimaryButton
+            title="Start Face Enrollment"
+            onPress={() => navigation.navigate('Enroll')}
+            icon="account-plus"
+          />
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -72,64 +78,69 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  keyboardView: {
-    flex: 1,
-  },
   content: {
     flex: 1,
     paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.lg,
-    justifyContent: 'space-between',
+    paddingTop: spacing.xxl,
+    paddingBottom: spacing.md,
   },
   header: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  titleContainer: {
     alignItems: 'center',
-    paddingVertical: spacing.xl,
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
   },
   iconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: colors.primaryLight + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: spacing.lg,
   },
   title: {
-    ...typography.largeTitle,
+    ...typography.h1,
     color: colors.textPrimary,
-    marginBottom: spacing.md,
-    textAlign: 'center',
+    marginBottom: spacing.sm,
   },
   subtitle: {
-    ...typography.subtitle,
-    color: colors.primary,
+    ...typography.h3,
+    color: colors.textSecondary,
     textAlign: 'center',
-    fontWeight: '600',
     marginBottom: spacing.md,
   },
   description: {
-    ...typography.body,
-    color: colors.textSecondary,
+    ...typography.bodySmall,
+    color: colors.textTertiary,
     textAlign: 'center',
-    lineHeight: 24,
+    paddingHorizontal: spacing.lg,
   },
-  featuresContainer: {
-    marginBottom: spacing.xl,
+  features: {
+    gap: spacing.md,
+    marginBottom: spacing.lg,
   },
-  featureRow: {
+  featureItem: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
-  },
-  feature: {
-    alignItems: 'center',
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: 12,
+    gap: spacing.md,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   featureText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontWeight: '500',
-    marginTop: spacing.xs,
+    ...typography.bodyMedium,
+    color: colors.textPrimary,
   },
-  buttonContainer: {
-    alignItems: 'center',
+  actions: {
+    gap: spacing.md,
+  },
+  bottom: {
+    paddingTop: spacing.md,
     paddingBottom: spacing.xl,
   },
 });

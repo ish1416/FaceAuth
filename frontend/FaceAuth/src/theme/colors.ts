@@ -1,33 +1,38 @@
 export const colors = {
-  // Primary brand colors
-  primary: '#6366F1', // Modern indigo
-  primaryLight: '#818CF8',
-  primaryDark: '#4F46E5',
+  // Primary - Ocean Blue
+  primary: '#0077be',
+  primaryLight: '#0096d6',
+  primaryDark: '#005a8f',
   
-  // Surface colors
-  background: '#FAFBFC', // Softer background
+  // Secondary
+  secondary: '#1d5d9b',
+  secondaryLight: '#2e7bc4',
+  
+  // Status
+  success: '#059669',
+  successLight: '#10B981',
+  error: '#DC2626',
+  errorLight: '#EF4444',
+  warning: '#D97706',
+  info: '#0284C7',
+  
+  // Neutrals
+  background: '#F8FAFC',
   surface: '#FFFFFF',
-  surfaceVariant: '#F8FAFC',
-  
-  // Text colors
-  textPrimary: '#1E293B', // Darker for better contrast
-  textSecondary: '#64748B', // Warmer gray
-  textTertiary: '#94A3B8',
-  
-  // Status colors
-  success: '#10B981', // Modern green
-  successLight: '#34D399',
-  error: '#EF4444', // Modern red
-  errorLight: '#F87171',
-  warning: '#F59E0B', // Amber
-  warningLight: '#FBBF24',
-  
-  // Accent colors
-  accent: '#8B5CF6', // Purple accent
-  accentLight: '#A78BFA',
-  
-  // Neutral colors
+  surfaceElevated: '#FFFFFF',
   border: '#E2E8F0',
   borderLight: '#F1F5F9',
-  shadow: '#0F172A',
+  
+  // Text
+  textPrimary: '#0F172A',
+  textSecondary: '#475569',
+  textTertiary: '#94A3B8',
+  textInverse: '#FFFFFF',
+  
+  // Overlays
+  overlay: 'rgba(15, 23, 42, 0.5)',
+  overlayLight: 'rgba(15, 23, 42, 0.3)',
+  
+  // Shadows
+  shadow: 'rgba(15, 23, 42, 0.1)',
 };

@@ -1,95 +1,151 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { CameraView } from 'expo-camera';
+import { useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
-import CameraView, { CameraViewRef } from '../components/CameraView';
+import { typography } from '../theme/typography';
 import PrimaryButton from '../components/PrimaryButton';
+import CameraViewComponent from '../components/CameraView';
+import LoadingOverlay from '../components/LoadingOverlay';
 import CustomModal from '../components/CustomModal';
 import { verifyFace } from '../services/api';
 
 export default function VerifyScreen() {
-  const navigation = useNavigation();
-  const cameraRef = useRef<CameraViewRef>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [modalState, setModalState] = useState<{
-    visible: boolean;
-    type: 'success' | 'error';
-    title: string;
-    message: string;
-  }>({ visible: false, type: 'success', title: '', message: '' });
+  const navigation = useNavigation<any>();
+  const cameraRef = useRef<CameraView | null>(null);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalConfig, setModalConfig] = useState({ title: '', message: '', type: 'success' as 'success' | 'error' });
 
-  const showModal = (type: 'success' | 'error', title: string, message: string) => {
-    setModalState({ visible: true, type, title, message });
+  const showModal = (title: string, message: string, type: 'success' | 'error') => {
+    setModalConfig({ title, message, type });
+    setModalVisible(true);
   };
 
-  const hideModal = () => {
-    setModalState(prev => ({ ...prev, visible: false }));
-  };
+  const handleCapture = async () => {
+    if (!cameraRef.current) return;
 
-  const handleVerify = async () => {
     try {
-      cameraRef.current?.startScanning();
-      setIsLoading(true);
+      setLoading(true);
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
       
-      const photo = await cameraRef.current?.capturePhoto();
-      if (!photo) {
-        showModal('error', 'Capture Failed', 'Failed to capture photo. Please try again.');
-        return;
+      if (photo?.uri) {
+        const result = await verifyFace(photo.uri);
+        navigation.navigate('Result', { result });
       }
-
-      const result = await verifyFace(photo.uri);
-      
-      navigation.navigate('Result' as never, { result } as never);
-    } catch (error) {
+    } catch (error: any) {
       showModal(
-        'error',
         'Verification Failed',
-        'Unable to verify your identity. Please ensure your face is clearly visible and try again.'
+        error.response?.data?.error || 'Please enroll first.',
+        'error'
       );
     } finally {
-      cameraRef.current?.stopScanning();
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleErrorConfirm = () => {
-    hideModal();
+  const handleGallery = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [3, 4],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      try {
+        setLoading(true);
+        const verifyResult = await verifyFace(result.assets[0].uri);
+        navigation.navigate('Result', { result: verifyResult });
+      } catch (error: any) {
+        showModal(
+          'Verification Failed',
+          error.response?.data?.error || 'Please enroll first.',
+          'error'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Face Verification</Text>
-          <Text style={styles.subtitle}>
-            Position your face within the frame and capture a clear photo for verification
+  if (!permission) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.centerContent}>
+          <MaterialCommunityIcons name="camera-off" size={64} color={colors.textTertiary} />
+          <Text style={styles.permissionText}>Loading camera...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!permission.granted) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.centerContent}>
+          <MaterialCommunityIcons name="camera-off" size={64} color={colors.error} />
+          <Text style={styles.permissionTitle}>Camera Access Required</Text>
+          <Text style={styles.permissionMessage}>
+            Camera access is required for face verification
           </Text>
+          <PrimaryButton title="Grant Permission" onPress={requestPermission} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Identity Verification</Text>
         </View>
 
-        <View style={styles.cameraSection}>
-          <CameraView ref={cameraRef} />
-        </View>
+        <CameraViewComponent cameraRef={cameraRef} facing="front" />
 
-        <View style={styles.buttonSection}>
-          <PrimaryButton 
-            title="Verify Face" 
-            onPress={handleVerify}
-            disabled={isLoading}
+        <View style={styles.actions}>
+          <View style={styles.buttonRow}>
+            <View style={styles.buttonHalf}>
+              <PrimaryButton
+                title="Capture"
+                onPress={handleCapture}
+                loading={loading}
+                icon="shield-check"
+              />
+            </View>
+            <View style={styles.buttonHalf}>
+              <PrimaryButton
+                title="Gallery"
+                onPress={handleGallery}
+                variant="secondary"
+                icon="image"
+              />
+            </View>
+          </View>
+          <PrimaryButton
+            title="Cancel"
+            onPress={() => navigation.goBack()}
+            variant="outline"
           />
         </View>
-      </ScrollView>
-      
+      </View>
+
+      <LoadingOverlay visible={loading} message="Verifying identity..." />
       <CustomModal
-        visible={modalState.visible}
-        type={modalState.type}
-        title={modalState.title}
-        message={modalState.message}
-        primaryButton={{
-          text: 'Try Again',
-          onPress: handleErrorConfirm,
-        }}
+        visible={modalVisible}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+        onClose={() => setModalVisible(false)}
       />
     </SafeAreaView>
   );
@@ -101,35 +157,49 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.lg,
+    flex: 1,
+    padding: spacing.md,
+    justifyContent: 'space-between',
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+    gap: spacing.md,
   },
   header: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    paddingVertical: spacing.sm,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    ...typography.h2,
     color: colors.textPrimary,
-    marginBottom: spacing.md,
-    textAlign: 'center',
   },
-  subtitle: {
-    fontSize: 16,
+  actions: {
+    gap: spacing.sm,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  buttonHalf: {
+    flex: 1,
+  },
+  permissionTitle: {
+    ...typography.h2,
+    color: colors.textPrimary,
+    marginTop: spacing.md,
+  },
+  permissionMessage: {
+    ...typography.body,
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
-    paddingHorizontal: spacing.md,
+    marginBottom: spacing.lg,
   },
-  cameraSection: {
-    flex: 1,
-    justifyContent: 'center',
-    marginBottom: spacing.xl,
-  },
-  buttonSection: {
-    alignItems: 'center',
-    paddingBottom: spacing.lg,
+  permissionText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginTop: spacing.md,
   },
 });

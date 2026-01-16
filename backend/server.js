@@ -15,6 +15,28 @@ const PORT = 3000;
 // Global variable to store enrolled face descriptor
 let enrolledDescriptor = null;
 
+// Persist descriptor to file
+const DESCRIPTOR_FILE = path.join(__dirname, 'enrolled_descriptor.json');
+
+function saveDescriptor() {
+  if (enrolledDescriptor) {
+    fs.writeFileSync(DESCRIPTOR_FILE, JSON.stringify(Array.from(enrolledDescriptor)));
+    console.log('Descriptor saved to file');
+  }
+}
+
+function loadDescriptor() {
+  try {
+    if (fs.existsSync(DESCRIPTOR_FILE)) {
+      const data = JSON.parse(fs.readFileSync(DESCRIPTOR_FILE, 'utf8'));
+      enrolledDescriptor = new Float32Array(data);
+      console.log('Descriptor loaded from file');
+    }
+  } catch (error) {
+    console.error('Error loading descriptor:', error.message);
+  }
+}
+
 // Enable CORS for all routes
 app.use(cors());
 
@@ -25,6 +47,18 @@ async function loadModels() {
   await faceapi.nets.faceLandmark68Net.loadFromDisk(modelPath);
   await faceapi.nets.faceRecognitionNet.loadFromDisk(modelPath);
   console.log('Models loaded');
+  
+  // Warm up the models with a dummy detection
+  try {
+    const dummyCanvas = new Canvas(100, 100);
+    const ctx = dummyCanvas.getContext('2d');
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, 100, 100);
+    await faceapi.detectSingleFace(dummyCanvas).withFaceLandmarks().withFaceDescriptor();
+    console.log('Models warmed up');
+  } catch (error) {
+    console.log('Warmup completed (no face expected)');
+  }
 }
 
 // Create uploads directory if it doesn't exist
@@ -63,22 +97,48 @@ app.post('/upload', upload.single('image'), (req, res) => {
 });
 
 app.post('/enroll', upload.single('image'), async (req, res) => {
+  console.log('=== ENROLL ENDPOINT CALLED ===');
+  console.log('File uploaded:', !!req.file);
+  
   if (!req.file) {
+    console.log('ERROR: No file uploaded');
     return res.status(400).json({ error: 'No image uploaded' });
   }
 
   try {
+    console.log('Loading image:', req.file.path);
     const img = await loadImage(req.file.path);
+    console.log('Image loaded successfully');
+    
+    console.log('Starting face detection...');
     const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
     
     if (!detection) {
+      console.log('ERROR: No face detected');
+      // Clean up file
+      fs.unlinkSync(req.file.path);
       return res.status(400).json({ error: 'No face detected' });
     }
+    console.log('Face detected successfully');
 
     enrolledDescriptor = detection.descriptor;
+    console.log('Face enrolled successfully');
+    
+    // Save descriptor to file
+    saveDescriptor();
+    
+    // Clean up uploaded file
+    fs.unlinkSync(req.file.path);
+    
     res.json({ enrolled: true });
   } catch (error) {
-    res.status(500).json({ error: 'Face processing failed' });
+    console.error('ENROLLMENT ERROR:', error.message);
+    console.error('Stack trace:', error.stack);
+    // Clean up file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ error: 'Face processing failed', details: error.message });
   }
 });
 
@@ -87,17 +147,17 @@ app.post('/verify', upload.single('image'), async (req, res) => {
   console.log('enrolledDescriptor exists:', !!enrolledDescriptor);
   console.log('File uploaded:', !!req.file);
   
-  if (!enrolledDescriptor) {
-    console.log('ERROR: No enrolled descriptor found');
-    return res.status(400).json({ error: 'No enrolled face found' });
-  }
-
-  if (!req.file) {
-    console.log('ERROR: No file uploaded');
-    return res.status(400).json({ error: 'No image uploaded' });
-  }
-
   try {
+    if (!enrolledDescriptor) {
+      console.log('ERROR: No enrolled descriptor found');
+      return res.status(400).json({ error: 'No enrolled face found' });
+    }
+
+    if (!req.file) {
+      console.log('ERROR: No file uploaded');
+      return res.status(400).json({ error: 'No image uploaded' });
+    }
+
     console.log('Loading image for verification:', req.file.path);
     const img = await loadImage(req.file.path);
     console.log('Image loaded successfully');
@@ -107,6 +167,8 @@ app.post('/verify', upload.single('image'), async (req, res) => {
     
     if (!detection) {
       console.log('ERROR: No face detected in verification image');
+      // Clean up file
+      fs.unlinkSync(req.file.path);
       return res.status(400).json({ error: 'No face detected' });
     }
     console.log('Face detected successfully');
@@ -118,15 +180,33 @@ app.post('/verify', upload.single('image'), async (req, res) => {
 
     const result = { success, distance };
     console.log('Sending verification result:', result);
+    
+    // Clean up uploaded file
+    fs.unlinkSync(req.file.path);
+    
     res.json(result);
   } catch (error) {
     console.error('VERIFICATION ERROR:', error.message);
     console.error('Stack trace:', error.stack);
+    // Clean up file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
     res.status(500).json({ error: 'Face processing failed', details: error.message });
   }
 });
 
-app.listen(PORT, async () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`Server running on port ${PORT}`);
   await loadModels();
+  loadDescriptor();
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('UNCAUGHT EXCEPTION:', error);
+});
+
+process.on('unhandledRejection', (error) => {
+  console.error('UNHANDLED REJECTION:', error);
 });
