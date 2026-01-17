@@ -123,7 +123,11 @@ app.post('/detect-faces', upload.single('image'), async (req, res) => {
     console.log('Detected faces:', faces.length);
     fs.unlinkSync(req.file.path); // Clean up
     
-    res.json({ faces });
+    res.json({ 
+      faces,
+      imageWidth: img.width,
+      imageHeight: img.height
+    });
   } catch (error) {
     console.error('FACE DETECTION ERROR:', error.message);
     if (req.file && fs.existsSync(req.file.path)) {

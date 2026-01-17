@@ -16,6 +16,7 @@ export default function FaceDetectionScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [faces, setFaces] = useState<Array<{ x: number; y: number; width: number; height: number }>>([]);
+  const [imageInfo, setImageInfo] = useState<{ originalWidth: number; originalHeight: number; displayWidth: number; displayHeight: number } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const captureAndDetect = async () => {
@@ -54,6 +55,22 @@ export default function FaceDetectionScreen() {
         if (result.faces) {
           console.log('Faces received:', result.faces);
           setFaces(result.faces);
+          
+          // Use backend dimensions if available, otherwise get from image
+          if (result.imageWidth && result.imageHeight) {
+            console.log('Backend image dimensions:', result.imageWidth, 'x', result.imageHeight);
+            setImageInfo(prev => ({ 
+              ...prev, 
+              originalWidth: result.imageWidth, 
+              originalHeight: result.imageHeight 
+            }));
+          } else {
+            // Fallback: get image dimensions
+            Image.getSize(photo.uri, (width, height) => {
+              console.log('Fallback image size:', width, 'x', height);
+              setImageInfo(prev => ({ ...prev, originalWidth: width, originalHeight: height }));
+            });
+          }
         }
       }
     } catch (error) {
@@ -66,6 +83,7 @@ export default function FaceDetectionScreen() {
   const resetCapture = () => {
     setCapturedImage(null);
     setFaces([]);
+    setImageInfo({ originalWidth: 0, originalHeight: 0, displayWidth: 0, displayHeight: 0 });
   };
 
   if (!permission) {
@@ -121,25 +139,45 @@ export default function FaceDetectionScreen() {
                 onLayout={(event) => {
                   const { width, height } = event.nativeEvent.layout;
                   console.log('Image display size:', width, 'x', height);
+                  setImageInfo(prev => ({ ...prev, displayWidth: width, displayHeight: height }));
                 }}
               />
               
               {/* Face overlay boxes */}
-              {faces.map((face, index) => {
-                console.log('Face coordinates:', face);
+              {imageInfo?.displayWidth && imageInfo?.displayHeight && imageInfo?.originalWidth && imageInfo?.originalHeight && faces.map((face, index) => {
+                // Scale coordinates from original image to display size
+                const scaleX = imageInfo.displayWidth / imageInfo.originalWidth;
+                const scaleY = imageInfo.displayHeight / imageInfo.originalHeight;
+                
+                const scaledFace = {
+                  x: face.x * scaleX,
+                  y: face.y * scaleY,
+                  width: face.width * scaleX,
+                  height: face.height * scaleY,
+                };
+                
+                console.log('Original face:', face);
+                console.log('Scaled face:', scaledFace);
+                console.log('Scale factors:', { scaleX, scaleY });
+                console.log('Image info:', imageInfo);
+                console.log('Rendering face box at:', scaledFace);
+                
                 return (
                   <View
                     key={index}
                     style={[
                       styles.faceBox,
                       {
-                        left: face.x,
-                        top: face.y,
-                        width: face.width,
-                        height: face.height,
+                        left: scaledFace.x,
+                        top: scaledFace.y,
+                        width: scaledFace.width,
+                        height: scaledFace.height,
+                        zIndex: 1000,
                       }
                     ]}
-                  />
+                  >
+                    <Text style={styles.faceLabel}>Face {index + 1}</Text>
+                  </View>
                 );
               })}
             </View>
@@ -231,10 +269,29 @@ const styles = StyleSheet.create({
   },
   faceBox: {
     position: 'absolute',
-    borderWidth: 3,
-    borderColor: colors.primary,
+    borderWidth: 4,
+    borderColor: '#00FF00',
+    borderRadius: 8,
+    backgroundColor: 'rgba(0, 255, 0, 0.2)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    zIndex: 1000,
+    elevation: 1000,
+  },
+  faceLabel: {
+    ...typography.caption,
+    color: '#FFFFFF',
+    backgroundColor: '#00FF00',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
     borderRadius: 4,
-    backgroundColor: 'rgba(0, 119, 190, 0.1)',
+    fontSize: 12,
+    fontWeight: 'bold',
+    position: 'absolute',
+    top: -25,
+    left: 0,
+    zIndex: 1001,
+    elevation: 1001,
   },
   processingIndicator: {
     position: 'absolute',
