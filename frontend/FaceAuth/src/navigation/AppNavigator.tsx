@@ -5,6 +5,7 @@ import LandingScreen from '../screens/LandingScreen';
 import EnrollScreen from '../screens/EnrollScreen';
 import VerifyScreen from '../screens/VerifyScreen';
 import ResultScreen from '../screens/ResultScreen';
+import FaceDetectionScreen from '../screens/FaceDetectionScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,6 +17,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Enroll" component={EnrollScreen} />
         <Stack.Screen name="Verify" component={VerifyScreen} />
         <Stack.Screen name="Result" component={ResultScreen} />
+        <Stack.Screen name="FaceDetection" component={FaceDetectionScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

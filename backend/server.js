@@ -97,6 +97,37 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.post('/detect-faces', upload.single('image'), async (req, res) => {
+  console.log('=== DETECT FACES ENDPOINT CALLED ===');
+  
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image uploaded' });
+  }
+
+  try {
+    const img = await loadImage(req.file.path);
+    const detections = await faceapi.detectAllFaces(img);
+    
+    const faces = detections.map(detection => ({
+      x: Math.round(detection.box.x),
+      y: Math.round(detection.box.y),
+      width: Math.round(detection.box.width),
+      height: Math.round(detection.box.height)
+    }));
+    
+    console.log('Detected faces:', faces.length);
+    fs.unlinkSync(req.file.path); // Clean up
+    
+    res.json({ faces });
+  } catch (error) {
+    console.error('FACE DETECTION ERROR:', error.message);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ error: 'Face detection failed' });
+  }
+});
+
 app.post('/upload', upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No image uploaded' });

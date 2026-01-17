@@ -62,11 +62,19 @@ export default function LandingScreen() {
         </View>
 
         <View style={styles.bottom}>
-          <PrimaryButton
-            title="Start Face Enrollment"
-            onPress={() => navigation.navigate('Enroll')}
-            icon="account-plus"
-          />
+          <View style={styles.actions}>
+            <PrimaryButton
+              title="Start Face Enrollment"
+              onPress={() => navigation.navigate('Enroll')}
+              icon="account-plus"
+            />
+            <PrimaryButton
+              title="Face Detection"
+              onPress={() => navigation.navigate('FaceDetection')}
+              variant="secondary"
+              icon="face-recognition"
+            />
+          </View>
         </View>
       </View>
     </SafeAreaView>
