@@ -50,7 +50,9 @@ export default function FaceDetectionScreen() {
         });
         
         const result = await response.json();
+        console.log('Backend response:', result);
         if (result.faces) {
+          console.log('Faces received:', result.faces);
           setFaces(result.faces);
         }
       }
@@ -113,23 +115,33 @@ export default function FaceDetectionScreen() {
             />
           ) : (
             <View style={styles.imageContainer}>
-              <Image source={{ uri: capturedImage }} style={styles.capturedImage} />
+              <Image 
+                source={{ uri: capturedImage }} 
+                style={styles.capturedImage}
+                onLayout={(event) => {
+                  const { width, height } = event.nativeEvent.layout;
+                  console.log('Image display size:', width, 'x', height);
+                }}
+              />
               
               {/* Face overlay boxes */}
-              {faces.map((face, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.faceBox,
-                    {
-                      left: face.x,
-                      top: face.y,
-                      width: face.width,
-                      height: face.height,
-                    }
-                  ]}
-                />
-              ))}
+              {faces.map((face, index) => {
+                console.log('Face coordinates:', face);
+                return (
+                  <View
+                    key={index}
+                    style={[
+                      styles.faceBox,
+                      {
+                        left: face.x,
+                        top: face.y,
+                        width: face.width,
+                        height: face.height,
+                      }
+                    ]}
+                  />
+                );
+              })}
             </View>
           )}
           
@@ -219,10 +231,10 @@ const styles = StyleSheet.create({
   },
   faceBox: {
     position: 'absolute',
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: colors.primary,
     borderRadius: 4,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0, 119, 190, 0.1)',
   },
   processingIndicator: {
     position: 'absolute',

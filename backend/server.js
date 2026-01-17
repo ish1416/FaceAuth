@@ -106,14 +106,19 @@ app.post('/detect-faces', upload.single('image'), async (req, res) => {
 
   try {
     const img = await loadImage(req.file.path);
+    console.log('Image dimensions:', img.width, 'x', img.height);
     const detections = await faceapi.detectAllFaces(img);
     
-    const faces = detections.map(detection => ({
-      x: Math.round(detection.box.x),
-      y: Math.round(detection.box.y),
-      width: Math.round(detection.box.width),
-      height: Math.round(detection.box.height)
-    }));
+    const faces = detections.map(detection => {
+      const face = {
+        x: Math.round(detection.box.x),
+        y: Math.round(detection.box.y),
+        width: Math.round(detection.box.width),
+        height: Math.round(detection.box.height)
+      };
+      console.log('Face detected at:', face);
+      return face;
+    });
     
     console.log('Detected faces:', faces.length);
     fs.unlinkSync(req.file.path); // Clean up
