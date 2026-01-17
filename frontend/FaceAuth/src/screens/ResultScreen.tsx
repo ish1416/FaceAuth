@@ -139,6 +139,12 @@ export default function ResultScreen() {
               color={statusColor}
             />
             <DetailItem 
+              icon="chart-line" 
+              label="Similarity Score" 
+              value={`${(100 - (result.distance / 0.6 * 100)).toFixed(1)}%`}
+              color={colors.primary}
+            />
+            <DetailItem 
               icon="shield-check" 
               label="Security Level" 
               value="High"
