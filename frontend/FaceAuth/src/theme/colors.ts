@@ -1,38 +1,38 @@
 export const colors = {
-  // Primary - Ocean Blue
-  primary: '#0077be',
-  primaryLight: '#0096d6',
-  primaryDark: '#005a8f',
+  // Government of India Primary Colors
+  primary: '#0B3C5D', // Deep Navy Blue
+  primaryLight: '#1A5A7A',
+  primaryDark: '#062A42',
   
-  // Secondary
-  secondary: '#1d5d9b',
-  secondaryLight: '#2e7bc4',
+  // Government Colors
+  success: '#1B5E20', // Government Green
+  successLight: '#2E7D32',
+  accent: '#D4A017', // Muted Gold
+  accentLight: '#E6B800',
   
-  // Status
-  success: '#059669',
-  successLight: '#10B981',
-  error: '#DC2626',
-  errorLight: '#EF4444',
-  warning: '#D97706',
-  info: '#0284C7',
+  // Status Colors
+  error: '#D32F2F',
+  errorLight: '#F44336',
+  warning: '#F57C00',
+  info: '#1976D2',
   
-  // Neutrals
-  background: '#F8FAFC',
+  // Neutrals - Government Standard
+  background: '#F5F5F5',
   surface: '#FFFFFF',
   surfaceElevated: '#FFFFFF',
-  border: '#E2E8F0',
-  borderLight: '#F1F5F9',
+  border: '#E0E0E0',
+  borderLight: '#F0F0F0',
   
-  // Text
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textTertiary: '#94A3B8',
+  // Text - High Contrast for Accessibility
+  textPrimary: '#212121',
+  textSecondary: '#757575',
+  textTertiary: '#9E9E9E',
   textInverse: '#FFFFFF',
   
   // Overlays
-  overlay: 'rgba(15, 23, 42, 0.5)',
-  overlayLight: 'rgba(15, 23, 42, 0.3)',
+  overlay: 'rgba(11, 60, 93, 0.6)',
+  overlayLight: 'rgba(11, 60, 93, 0.3)',
   
   // Shadows
-  shadow: 'rgba(15, 23, 42, 0.1)',
+  shadow: 'rgba(33, 33, 33, 0.15)',
 };

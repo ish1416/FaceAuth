@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "FaceAuth",
-    "slug": "faceauth",
+    "name": "Government Face Liveness",
+    "slug": "gov-face-liveness",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,20 +10,20 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0B3C5D"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ish1416.FaceAuth"
+      "bundleIdentifier": "gov.in.faceliveness"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0B3C5D"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.ish1416.FaceAuth",
+      "package": "gov.in.faceliveness",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
@@ -37,19 +37,24 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow FaceAuth to access your camera for face enrollment and verification."
+          "cameraPermission": "Allow Government Face Liveness to access your camera for biometric verification."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow FaceAuth to access your photos for face enrollment and verification."
+          "photosPermission": "Allow Government Face Liveness to access your photos for verification purposes."
         }
       ]
     ],
     "extra": {
       "eas": {
         "projectId": "9fcc888d-d394-4a8b-ac63-91ccd72ddfa7"
+      },
+      "developer": {
+        "name": "YellowSense Technologies",
+        "website": "https://yellowsense.in",
+        "contact": "tech@yellowsense.in"
       }
     }
   }
